@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "dvc>=3.67.1",
+    "dvc-s3>=3.3.0",
+    "pillow>=11.3.0",
 ]
 
 [project.scripts]
