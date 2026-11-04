@@ -24,3 +24,20 @@ services:
       INFERENCE_URL: http://inference:8000
     depends_on:
       - inference
+
+
+  evaluator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./mlflow-migration/mlruns:/mlflow-data/mlruns
+      - ./data/food11_processed_mini/evaluation:/app/data/food11_processed_mini/evaluation:ro
+      - ./src:/app/src:ro
+    depends_on:
+      - mlflow
+    profiles:
+      - tools
+    command: ["python", "-m", "src.food11.evaluate", "--version", "3"]
