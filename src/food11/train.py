@@ -1,11 +1,12 @@
 import argparse
 
-import mlflow
 import mlflow.pytorch
 import torch
-import torch.nn as nn
+from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, models, transforms
+
+import mlflow
 
 DATA_ROOT = {
     "processed": "data/food11_processed",
@@ -124,7 +125,7 @@ def train(args):
                 f"val_accuracy={val_accuracy:.4f}"
             )
 
-        test_loss, test_accuracy = evaluate(model, test_loader, criterion, device)
+        _test_loss, test_accuracy = evaluate(model, test_loader, criterion, device)
         mlflow.log_metric("test_accuracy", test_accuracy)
         print(f"final test_accuracy={test_accuracy:.4f}")
 

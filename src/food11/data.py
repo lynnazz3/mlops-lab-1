@@ -24,6 +24,8 @@ CATEGORIES = {
     10: "Vegetable-Fruit",
 }
 
+CLASSES = list(CATEGORIES.values())
+
 TARGET_SIZE = (128, 128)
 MINI_MAX_PER_CATEGORY = 100
 
@@ -33,8 +35,20 @@ def get_category_index(filename: str) -> int:
     return int(prefix)
 
 
+def category_from_filename(filename: str) -> str:
+    """Return the category name from a Food-11 filename."""
+    index = get_category_index(filename)
+    return CATEGORIES[index]
+
+
+def resize_image(img: Image.Image, size: int = 128) -> Image.Image:
+    """Convert an image to RGB and resize it."""
+    return img.convert("RGB").resize((size, size))
+
+
 def process_split(split: str) -> None:
     src_split_dir = RAW_DIR / split
+
     if not src_split_dir.exists():
         print(f"Skipping {split}: folder not found at {src_split_dir}")
         return
@@ -43,14 +57,18 @@ def process_split(split: str) -> None:
 
     for filename in os.listdir(src_split_dir):
         filepath = src_split_dir / filename
+
         if not filepath.is_file():
             continue
+
         try:
             cat_idx = get_category_index(filename)
         except ValueError:
             continue
+
         if cat_idx not in CATEGORIES:
             continue
+
         files_by_category[cat_idx].append(filename)
 
     for cat_idx, filenames in files_by_category.items():
@@ -67,16 +85,17 @@ def process_split(split: str) -> None:
 
         for filename in filenames:
             src_path = src_split_dir / filename
+
             try:
                 with Image.open(src_path) as img:
-                    img = img.convert("RGB")
-                    img_resized = img.resize(TARGET_SIZE)
+                    img_resized = resize_image(img)
 
                     img_resized.save(full_out_dir / filename)
 
                     if filename in mini_filenames:
                         img_resized.save(mini_out_dir / filename)
-            except Exception as e:
+
+            except (OSError, ValueError) as e:
                 print(f"Failed to process {src_path}: {e}")
 
         print(
@@ -87,6 +106,7 @@ def process_split(split: str) -> None:
 
 def main() -> None:
     random.seed(42)
+
     for split in SPLITS:
         process_split(split)
 

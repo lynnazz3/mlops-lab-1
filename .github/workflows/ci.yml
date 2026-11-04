@@ -1,0 +1,53 @@
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Check code quality
+        run: uv run ruff check src tests
+
+      - name: Run unit tests
+        run: uv run pytest -q
+
+  smoke:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t food11-api:ci .
+
+      - name: Start and test container
+        run: |
+          docker run -d --name api -p 8000:8000 -e SKIP_MODEL=1 food11-api:ci
+
+          for i in $(seq 1 20); do
+            if curl -sf http://localhost:8000/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+
+          docker logs api
+          exit 1

@@ -76,9 +76,8 @@ def process_split(split: str) -> None:
 
                     if filename in mini_filenames:
                         img_resized.save(mini_out_dir / filename)
-            except Exception as e:
+            except (OSError, ValueError) as e:
                 print(f"Failed to process {src_path}: {e}")
-
         print(
             f"[{split}] {cat_name}: {len(filenames)} images processed "
             f"({len(mini_filenames)} kept in mini set)"
